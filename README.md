@@ -39,17 +39,11 @@ ctera-portal-tool/
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/ctera-portal-tool.git
-   cd ctera-portal-tool
+   git clone https://github.com/yourusername/bezeqDisableDeleteTenant.git
+   cd bezeqDisableDeleteTenant
    ```
 
-2. Create and activate a virtual environment (recommended):
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. Install required packages:
+2. Install required packages:
    ```bash
    pip install -r requirements.txt
    ```
@@ -59,8 +53,8 @@ ctera-portal-tool/
 1. Create a `tenants.csv` file with your portal names:
    ```csv
    portal_name
-   tenant1.portal.com
-   tenant2.portal.com
+   tenant1
+   tenant2
    ```
 
 2. Set up your environment variables:
@@ -71,57 +65,61 @@ ctera-portal-tool/
 
 ## Usage
 
-Basic usage:
+Run the script with required arguments:
+```bash
+python main.py -a admin.ctera.com -u admin@ctera.com -p YourSecurePassword123
+```
 
-1. Run the script with required arguments:
+The script will:
+- Read portal names from tenants.csv
+- Connect to each portal
+- Disable the tenant
+- Update the status in the database
+
+## Running with Crontab
+
+To run the script automatically on a daily basis, you have two options:
+
+### Option 1: Using Environment File
+
+1. Create a `.env` file:
    ```bash
-   python main.py -a admin.ctera.com -u admin@ctera.com -p YourSecurePassword123
+   CTERA_ADDRESS=admin.ctera.com
+   CTERA_USERNAME=admin@ctera.com 
+   CTERA_PASSWORD=YourSecurePassword123
    ```
 
-2. The script will:
-   - Read portal names from tenants.csv
-   - Connect to each portal
-   - Disable the tenant
-   - Update the status in the database
-
-3. Monitor the output for:
-   - Processing status for each tenant:
-     - Portal name and tenant ID
-     - Current activation status
-     - Success/failure of disable operation
-   - Any errors that occur during execution:
-     - API connection issues
-     - Database errors
-     - Permission problems
-
-## Automation with Crontab
-
-To run the script daily at 2 AM, add the following to your crontab:
-
-1. Open crontab editor:
+2. Secure the file:
    ```bash
-   crontab -e
+   chmod 600 .env
    ```
 
-2. Add the following line:
+3. Add to crontab (`crontab -e`):
    ```bash
-   0 2 * * * cd /path/to/ctera-portal-tool && /path/to/venv/bin/python main.py -a admin.ctera.com -u admin@ctera.com -p YourSecurePassword123 >> /path/to/ctera-portal-tool/cron.log 2>&1
+   # This will run at 2:00 AM (02:00) every day
+   0 2 * * * . /full/path/to/.env; /path/to/python /path/to/bezeqDisableDeleteTenant/main.py -a $CTERA_ADDRESS -u $CTERA_USERNAME -p $CTERA_PASSWORD >> /path/to/cron.log 2>&1
    ```
 
-Note: For better security, consider using environment variables or a configuration file for credentials:
+### Option 2: Using Wrapper Script
 
-1. Create a config file (config.sh):
+1. Create a wrapper script (run.sh):
    ```bash
-   export CTERA_ADDRESS="admin.ctera.com"
-   export CTERA_USERNAME="admin@ctera.com"
-   export CTERA_PASSWORD="YourSecurePassword123"
+   #!/bin/bash
+   source /full/path/to/.env
+   /path/to/python /path/to/bezeqDisableDeleteTenant/main.py -a $CTERA_ADDRESS -u $CTERA_USERNAME -p $CTERA_PASSWORD
    ```
 
-2. Update crontab to use config:
+2. Make it executable:
    ```bash
-   0 2 * * * cd /path/to/ctera-portal-tool && source config.sh && /path/to/venv/bin/python main.py -a $CTERA_ADDRESS -u $CTERA_USERNAME -p $CTERA_PASSWORD >> /path/to/ctera-portal-tool/cron.log 2>&1
+   chmod +x run.sh
    ```
 
-Required packages:
-   - sqlalchemy: Database ORM for tenant management
-   - cterasdk: Official CTERA SDK for portal operations
+3. Add to crontab:
+   ```bash
+   0 2 * * * /full/path/to/run.sh >> /path/to/cron.log 2>&1
+   ```
+
+## Required Packages
+
+- sqlalchemy: Database ORM for tenant management
+- cterasdk: Official CTERA SDK for portal operations
