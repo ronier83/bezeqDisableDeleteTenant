@@ -5,3 +5,4 @@ actions/__pycache__/
 actions/**/__pycache__/
 tenants.db
 tenants.csv
+tenants.db
