@@ -14,7 +14,7 @@ def disable_tenant(admin, session):
         try:
             # Get current tenant parameters
             params = admin.api.get(f"objs/{portal.tenant_id}/")
-            print(f"Current activation status for tenant {portal.tenant_id}: {params.activationStatus}")
+            print(f"Current activation status for tenant {portal.portal_name}: {params.activationStatus}")
             
             # Set activation status to Disabled
             params.activationStatus = 'Disabled'
@@ -25,7 +25,7 @@ def disable_tenant(admin, session):
             portal.disable_completed_at = datetime.utcnow()
             session.commit()
             
-            print(f"Successfully disabled tenant {portal.tenant_id} and updated timestamp")
+            print(f"Successfully disabled tenant {portal.portal_name} and updated timestamp")
         except Exception as e:
             if "Editing portal in trashcan is forbidden" in str(e):
                 # Update portal status to deleted and set both timestamps
@@ -34,7 +34,7 @@ def disable_tenant(admin, session):
                 portal.disable_completed_at = current_time
                 portal.delete_completed_at = current_time
                 session.commit()
-                print(f"Portal {portal.tenant_id} was in trashcan. Updated status to deleted with timestamps.")
+                print(f"Portal {portal.portal_name} was in trashcan. Updated status to deleted with timestamps.")
             else:
                 session.rollback()
-                print(f"Error disabling tenant {portal.tenant_id}: {str(e)}")
+                print(f"Error disabling tenant {portal.portal_name}: {str(e)}")
