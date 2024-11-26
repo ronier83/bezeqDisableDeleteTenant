@@ -20,7 +20,7 @@ def load_csv_data(filename, session):
                 portal = Portal(
                     portal_name=row['portal_name'],
                     status='new',
-                    created_at=datetime.utcnow()
+                    processed_at=datetime.utcnow()
                 )
                 session.add(portal)
             else:
