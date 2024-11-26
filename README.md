@@ -71,10 +71,19 @@ python main.py -a admin.ctera.com -u admin@ctera.com -p YourSecurePassword123
 ```
 
 The script will:
-- Read portal names from tenants.csv
-- Connect to each portal
-- Disable the tenant
-- Update the status in the database
+1. Read portal names from tenants.csv
+2. Connect to each portal
+3. Disable the tenant
+4. Update the status in the database
+5. Check for and delete any tenants that were disabled more than 2 weeks ago
+
+### Automatic Tenant Deletion
+
+The tool includes an automatic deletion feature that:
+- Tracks when tenants are disabled using timestamps in the SQLite database
+- Automatically identifies tenants that have been disabled for more than 2 weeks
+- Safely deletes these tenants and updates their status in the database
+- Provides logging and error handling for the deletion process
 
 ## Running with Crontab
 
