@@ -39,7 +39,7 @@ ctera-portal-tool/
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/bezeqDisableDeleteTenant.git
+   git clone https://github.com/ronier83/bezeqDisableDeleteTenant.git
    cd bezeqDisableDeleteTenant
    ```
 
