@@ -31,5 +31,14 @@ def disable_tenant(admin, session):
             
             print(f"Successfully disabled tenant {portal.tenant_id} and updated timestamp")
         except Exception as e:
-            session.rollback()
-            print(f"Error disabling tenant {portal.tenant_id}: {str(e)}")
+            if "Editing portal in trashcan is forbidden" in str(e):
+                # Update portal status to deleted and set both timestamps
+                portal.status = 'deleted'
+                current_time = datetime.utcnow()
+                portal.disable_completed_at = current_time
+                portal.delete_completed_at = current_time
+                session.commit()
+                print(f"Portal {portal.tenant_id} was in trashcan. Updated status to deleted with timestamps.")
+            else:
+                session.rollback()
+                print(f"Error disabling tenant {portal.tenant_id}: {str(e)}")

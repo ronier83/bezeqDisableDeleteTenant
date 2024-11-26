@@ -3,3 +3,4 @@ database/__pycache__/
 database/**/__pycache__/
 actions/__pycache__/
 actions/**/__pycache__/
+tenants.db
