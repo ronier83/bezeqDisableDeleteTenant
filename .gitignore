@@ -6,3 +6,4 @@ actions/**/__pycache__/
 tenants.db
 tenants.csv
 tenants.db
+.DS_Store
