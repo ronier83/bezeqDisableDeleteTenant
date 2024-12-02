@@ -73,9 +73,9 @@ ctera-portal-tool/
 
 Basic usage:
 
-1. Run the script:
+1. Run the script with required arguments:
    ```bash
-   python main.py
+   python main.py -a admin.ctera.com -u admin@ctera.com -p YourSecurePassword123
    ```
 
 2. The script will:
@@ -93,6 +93,34 @@ Basic usage:
      - API connection issues
      - Database errors
      - Permission problems
+
+## Automation with Crontab
+
+To run the script daily at 2 AM, add the following to your crontab:
+
+1. Open crontab editor:
+   ```bash
+   crontab -e
+   ```
+
+2. Add the following line:
+   ```bash
+   0 2 * * * cd /path/to/ctera-portal-tool && /path/to/venv/bin/python main.py -a admin.ctera.com -u admin@ctera.com -p YourSecurePassword123 >> /path/to/ctera-portal-tool/cron.log 2>&1
+   ```
+
+Note: For better security, consider using environment variables or a configuration file for credentials:
+
+1. Create a config file (config.sh):
+   ```bash
+   export CTERA_ADDRESS="admin.ctera.com"
+   export CTERA_USERNAME="admin@ctera.com"
+   export CTERA_PASSWORD="YourSecurePassword123"
+   ```
+
+2. Update crontab to use config:
+   ```bash
+   0 2 * * * cd /path/to/ctera-portal-tool && source config.sh && /path/to/venv/bin/python main.py -a $CTERA_ADDRESS -u $CTERA_USERNAME -p $CTERA_PASSWORD >> /path/to/ctera-portal-tool/cron.log 2>&1
+   ```
 
 Required packages:
    - sqlalchemy: Database ORM for tenant management
