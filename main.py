@@ -6,6 +6,7 @@ from database.models import Portal
 from actions.disable_tenant import disable_tenant
 from actions.delete_tenant import delete_tenant
 from cterasdk import GlobalAdmin, settings
+import time
 
 settings.sessions.management.ssl = False
 
@@ -20,11 +21,11 @@ def load_csv_data(filename, session):
                 portal = Portal(
                     portal_name=row['portal_name'],
                     status='new',
-                    created_at=datetime.utcnow()
+                    processed_at=datetime.utcnow()
                 )
                 session.add(portal)
             else:
-                print(f"Warning: Portal {row['portal_name']} already exists in database, skipping.")
+                print(f"Portal {row['portal_name']} already exists in database, skipping.")
     session.commit()
 
 def process_tenants(address, username, password, session):
@@ -33,34 +34,40 @@ def process_tenants(address, username, password, session):
         try:
             admin.login(username, password)
             admin.portals.browse_global_admin()
-            # Get all portals from our database that need tenant IDs
-            portals = session.query(Portal).filter(Portal.tenant_id.is_(None)).all()
+            portals = session.query(Portal).all()
             
             try:
-                # Get all tenants from the API
-                tenants = admin.portals.list_tenants(include=['name', 'baseObjectRef'])
-                
-                # Loop through each portal in our database
+                # Process one portal at a time
                 for portal in portals:
-                    # Look for a matching tenant in the API response
-                    for tenant in tenants:
-                        if tenant.name == portal.portal_name:
-                            # Extract ID number from baseObjectRef string
-                            tenant_id = tenant.baseObjectRef.split('/')[1]
-                            portal.tenant_id = tenant_id
-                            print(f"Found match! Portal: {portal.portal_name}, Tenant ID: {portal.tenant_id}")
-                            break
-                    else:  # No match found
-                        print(f"No matching tenant found for portal: {portal.portal_name}")
+                    if portal.tenant_id is None:  # Only update those without tenant_id
+                        print(f"\nProcessing portal: {portal.portal_name}")
+                        tenants = admin.portals.list_tenants(include=['name', 'baseObjectRef'])
+                        
+                        for tenant in tenants:
+                            if tenant.name == portal.portal_name:
+                                tenant_id = tenant.baseObjectRef.split('/')[1]
+                                portal.tenant_id = tenant_id
+                                print(f"Found match! Portal: {portal.portal_name}, Tenant ID: {portal.tenant_id}")
+                                session.commit()  # Commit immediately after finding each tenant
+                                break
+                        else:
+                            print(f"No matching tenant found for portal: {portal.portal_name}")
                 
-                session.commit()
-                print("Successfully committed tenant ID updates to database")
+                print("-" * 40)
+                print("Finished tenant ID updates")
+                print("-" * 40)
                 
-                # Run disable_tenant function with existing admin session
+                # Now process each portal that has a tenant_id - only once
                 disable_tenant(admin, session)
-                
-                # Run delete_tenant function with existing admin session
+                print("-" * 40)
+                print("Finished disable tenant action")
+                print("-" * 40)
+                print("Starting delete tenant action")
+                print("-" * 40)
                 delete_tenant(admin, session)
+                print("-" * 40)
+                print("Finished delete tenant action")
+                print("-" * 40)
                 
             except Exception as e:
                 session.rollback()
@@ -82,10 +89,11 @@ def main():
         # Initialize database
         init_db()
         session = get_session()
-        
+        print("-" * 40)
+        print("Starting tenant ID updates")
+        print("-" * 40)
         # Load initial data from CSV
         load_csv_data('tenants.csv', session)
-        
         # Process all tenant operations
         process_tenants(args.address, args.username, args.password, session)
         

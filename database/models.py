@@ -8,7 +8,7 @@ class Portal(Base):
     
     id = Column(Integer, primary_key=True)
     status = Column(String)
-    created_at = Column(DateTime)
+    processed_at = Column(DateTime)
     disable_completed_at = Column(DateTime)
     delete_completed_at = Column(DateTime)
     portal_name = Column(String, unique=True)
